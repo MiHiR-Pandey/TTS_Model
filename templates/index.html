@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TTS App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+        h2 { color: #333; }
+        input, select, button {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-box">
+        <h2>Welcome, {{ username }}</h2>
+        <p>Credits: {{ credits }}</p>
+    </div>
+
+    <div>
+        <h3>Have a Special Key?</h3>
+        <input type="text" id="specialKeyInput" placeholder="Enter special key">
+        <button onclick="submitSpecialKey()">Submit</button>
+        <p id="keyResponse"></p>
+    </div>
+
+    <form id="ttsForm">
+        <label for="text">Enter Text:</label>
+        <input type="text" id="text" placeholder="Enter text..." required>
+
+        <label for="voice">Choose Voice:</label>
+        <select id="voice">
+            {% for voice in voices %}
+                <option value="{{ voice }}">{{ voice }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="button" onclick="generate()">Generate Speech</button>
+    </form>
+
+    <div id="audioContainer" style="display:none;">
+        <h3>Generated Audio:</h3>
+        <audio controls id="audioPlayer"></audio><br>
+        <a id="downloadLink" href="#" download><button>Download Audio</button></a>
+    </div>
+
+    <p><a href="/logout">Logout</a></p>
+
+    <script>
+        function generate() {
+            fetch('/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    text: document.getElementById('text').value,
+                    voice: document.getElementById('voice').value
+                })
+            }).then(res => {
+                if (!res.ok) return res.json().then(data => { alert(data.error); throw new Error(); });
+                return res.json();
+            }).then(data => {
+                const audioUrl = data.download_url;
+                const audioPlayer = document.getElementById('audioPlayer');
+                const downloadLink = document.getElementById('downloadLink');
+
+                audioPlayer.src = audioUrl;
+                downloadLink.href = audioUrl;
+
+                document.getElementById('audioContainer').style.display = 'block';
+                audioPlayer.play();
+            }).catch(() => {});
+        }
+
+        function submitSpecialKey() {
+            const key = document.getElementById('specialKeyInput').value;
+            fetch('/submit_key', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({key})
+            }).then(res => res.json())
+              .then(data => {
+                  document.getElementById('keyResponse').innerText = data.msg;
+              });
+        }
+    </script>
+</body>
+</html>
