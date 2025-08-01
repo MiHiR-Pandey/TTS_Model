@@ -1,0 +1,4 @@
+models/model.pth
+generated_audio/
+venv/
+__pycache__/
