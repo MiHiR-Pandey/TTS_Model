@@ -110,6 +110,14 @@ async def generate_tts(text, voice, output_file):
 # ========================
 # Routes
 # ========================
+    
+@app.route('/sw.js')
+def service_worker():
+    return send_file('sw.js')
+@app.route('/monetag')
+def monetag_verify():
+    return render_template('monetag.html')
+
 @app.route('/')
 def home():
     if 'loggedin' in session:
